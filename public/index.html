@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+    <script>
+
+        window.addEventListener('beforeunload', function(e) {
+            alert("Call")
+            // Cancel the event as stated by the standard.
+            e.preventDefault();
+            // Chrome requires returnValue to be set.
+            e.returnValue = '';
+        });
+        window.addEventListener("load", function() {
+            messages = [];
+            var socket = io.connect('localhost:9000');
+            console.log('after io.connect');
+            var field = document.getElementById("field");
+            var sendButton = document.getElementById("send");
+            var content = document.getElementById("content");
+            // Rec Server Messages
+            socket.on('message', function(data) {
+            console.log('inside rec server msgs');
+                if (data.message) {
+                    if (data.userid) {
+                        messages.push(data.message + " :: " + data.userid);
+                    } else {
+                        console.log('inside data.message-else');
+                        messages.push(data.message);
+                    }
+                    var html = '';
+                    for (var i = 0; i < messages.length; i++) {
+                        html += messages[i] + '<br />';
+                    }
+                    content.innerHTML = html;
+                } else {
+                    console.log("There is a problem:", data);
+                }
+            });
+            // Send Client Message to the Server
+            sendButton.onclick = function() {
+                var text = field.value;
+                // Event fire
+                console.log('before event fire');
+                socket.emit('send', {
+                    message: text,
+                    userid: localStorage.myname
+                });
+            };
+        });
+    </script>
+</head>
+
+
+<body>
+    <div class="container" >
+        <h2>Welcome to Room Chat </h2>
+    <div class="input-group mb-3" >
+    <input  class="form-control" type="text" id="field" placeholder="Type Message to send..." 
+    aria-label="Type Message to send..." aria-describedby="basic-addon2" >
+    <div class="input-group-append">   
+    <button class="btn btn-secondary" type="button" id='send' >Send</button>
+    </div>
+</div>    
+<div id="content" class="form-control"  style="background-color:lightblue"></br></div>
+</div>
+</body>
+
+</html>
